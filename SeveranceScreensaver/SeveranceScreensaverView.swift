@@ -9,7 +9,8 @@ import Foundation
 import ScreenSaver
 
 class SeveranceScreensaverView: ScreenSaverView {
-    var label: NSTextField!
+    var characterLayers: [CATextLayer] = []
+    let text = "Hello Ms. Cobel"
 
     override init?(frame: NSRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
@@ -23,71 +24,92 @@ class SeveranceScreensaverView: ScreenSaverView {
 
     private func setupText() {
         self.wantsLayer = true
+        self.layer?.backgroundColor = NSColor.black.cgColor
         
-        // Create the text label
-        label = NSTextField(labelWithString: "Hello, Ms. Cobel.")
-        label.font = NSFont.systemFont(ofSize: 48, weight: .bold)
-        label.textColor = NSColor.white
-        label.alignment = .center
-        label.backgroundColor = .clear
-        label.frame = CGRect(x: bounds.width, y: bounds.midY - 24, width: 400, height: 50)
-        addSubview(label)
-        
-        // Start animation loop
-        animateText()
+        let fontSize: CGFloat = bounds.height * 0.1
+        let fontSpec: NSFont = NSFont.systemFont(ofSize: fontSize, weight: .bold)
+        let startX = bounds.width
+        let startY = bounds.midY - fontSize / 2
+        let textWidth: CGFloat = CGFloat( text.size(withAttributes: [.font: fontSpec]).width )
+
+        var charPosition = startX
+        for (_, char) in text.enumerated() {
+            let charLayer = CATextLayer()
+            charLayer.string = String(char)
+            charLayer.font = fontSpec
+            charLayer.fontSize = fontSize
+            charLayer.foregroundColor = NSColor.white.cgColor
+            charLayer.alignmentMode = .center
+            charLayer.contentsScale = NSScreen.main?.backingScaleFactor ?? 2.0
+            
+            let charSpace: CGSize = String(char).size(withAttributes: [.font: fontSpec])
+            print("char:", char, "| width:", charSpace.width, "| pos:", charPosition)
+            let xPosition = charPosition
+            charLayer.frame = CGRect(x: xPosition, y: startY, width: CGFloat(charSpace.width), height: CGFloat(charSpace.height))
+            
+            self.layer?.addSublayer(charLayer)
+            characterLayers.append(charLayer)
+            charPosition += CGFloat(charSpace.width)
+        }
+
+        animateIn(textWidth: textWidth)
     }
 
-    private func animateText() {
-        let screenWidth = NSScreen.main?.frame.width ?? 800
-        let textWidth = label.frame.width
-        let centerX = screenWidth / 2 - (textWidth / 2)
-//        let textWidth = self.intrinsicContentSize.width
-        let offScreenRight = screenWidth + textWidth
-        let offScreenLeft = -textWidth
-        
-        // Set init position (off-screen right)
-        label.frame.origin.x = offScreenRight
-        
-        // Animate moving to center
-        let moveToCenter = CASpringAnimation(keyPath: "position.x")
-        moveToCenter.fromValue = offScreenRight
-        moveToCenter.toValue = centerX
-        moveToCenter.damping = 90
-        moveToCenter.stiffness = 100
-        moveToCenter.mass = 10
-        moveToCenter.initialVelocity = 0.00005
-        moveToCenter.isRemovedOnCompletion = false
-        moveToCenter.duration = moveToCenter.settlingDuration
-        moveToCenter.timingFunction = CAMediaTimingFunction(name: .easeIn)
+    private func animateIn(textWidth: CGFloat) {
 
-        // Animate moving out to the left
-        let moveOut = CASpringAnimation(keyPath: "position.x")
-        moveOut.fromValue = centerX
-        moveOut.toValue = offScreenLeft
-        moveOut.beginTime = moveToCenter.beginTime + moveToCenter.settlingDuration
-        moveOut.damping = 90
-        moveOut.stiffness = 100
-        moveOut.mass = 10
-        moveOut.initialVelocity = 0.00005
-        moveOut.duration = moveOut.settlingDuration
-        moveOut.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        let centerX = bounds.midX
+        var totalDuration: CFTimeInterval = 0
 
-        // Group both animations
-        let animationGroup = CAAnimationGroup()
-        animationGroup.animations = [moveToCenter, moveOut]
-        animationGroup.duration = moveToCenter.settlingDuration + moveOut.settlingDuration + 1
-        animationGroup.fillMode = .forwards
-        animationGroup.isRemovedOnCompletion = false
+        for ( index, charLayer ) in characterLayers.enumerated() {
+            let delay = Double(index) * 0.05 // Stagger animation for each character
+            
+            let moveToCenter = CASpringAnimation(keyPath: "position.x")
+            moveToCenter.fromValue = charLayer.position.x
+            moveToCenter.toValue = centerX - (textWidth / 2) + charLayer.position.x - bounds.width
+            moveToCenter.damping = 1500
+            moveToCenter.stiffness = 100
+            moveToCenter.mass = 10
+            moveToCenter.initialVelocity = 0.5
+            moveToCenter.duration = moveToCenter.settlingDuration * 10
+            moveToCenter.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            moveToCenter.beginTime = CACurrentMediaTime() + delay
+            moveToCenter.fillMode = .forwards
+            
+            charLayer.add(moveToCenter, forKey: "moveToCenter")
+            totalDuration += moveToCenter.settlingDuration
+        }
         
-        label.layer?.add(animationGroup, forKey: "textMoveAnimation")
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + animationGroup.duration) {
-            self.animateText()
+        let moveOutDelay = totalDuration / 5 // Time before moving out
+        DispatchQueue.main.asyncAfter(deadline: .now() + moveOutDelay) {
+            self.animateExit(centerX: centerX, textWidth: textWidth)
         }
     }
-    
-    override func draw(_ rect: NSRect) {
-        NSColor.black.setFill()
-        rect.fill()
+    func animateExit(centerX: CGFloat, textWidth: CGFloat) {
+        var totalDuration: CFTimeInterval = 0
+
+        // Animate moving out to the left
+        for ( index, charLayer ) in characterLayers.enumerated() {
+            let delay = Double(index) * 0.05 // Slight cascade exit
+            
+            let moveOut = CASpringAnimation(keyPath: "position.x")
+            moveOut.fromValue = centerX - (textWidth / 2) + charLayer.position.x - bounds.width
+            moveOut.toValue = -(charLayer.position.x)
+            moveOut.damping = 1500
+            moveOut.stiffness = 100
+            moveOut.mass = 10
+            moveOut.initialVelocity = 0.5
+            moveOut.duration = moveOut.settlingDuration * 10
+            moveOut.beginTime = CACurrentMediaTime() + delay
+            moveOut.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            moveOut.fillMode = .forwards
+            
+            charLayer.add(moveOut, forKey: "moveOut")
+            totalDuration += moveOut.settlingDuration
+        }
+        
+        // Restart animation after exit
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration / 5) {
+            self.animateIn(textWidth: textWidth)
+        }
     }
 }
