@@ -61,19 +61,10 @@ class SeveranceScreensaverView: ScreenSaverView {
         var totalDuration: CFTimeInterval = 0
 
         for ( index, charLayer ) in characterLayers.enumerated() {
-            let delay = Double(index) * 0.05 // Stagger animation for each character
-            
             let moveToCenter = CASpringAnimation(keyPath: "position.x")
+            configSpringAnimation(layer: moveToCenter, index: index)
             moveToCenter.fromValue = charLayer.position.x
             moveToCenter.toValue = centerX - (textWidth / 2) + charLayer.position.x - bounds.width
-            moveToCenter.damping = 1500
-            moveToCenter.stiffness = 100
-            moveToCenter.mass = 10
-            moveToCenter.initialVelocity = 0.5
-            moveToCenter.duration = moveToCenter.settlingDuration * 10
-            moveToCenter.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            moveToCenter.beginTime = CACurrentMediaTime() + delay
-            moveToCenter.fillMode = .forwards
             
             charLayer.add(moveToCenter, forKey: "moveToCenter")
             totalDuration += moveToCenter.settlingDuration
@@ -89,19 +80,12 @@ class SeveranceScreensaverView: ScreenSaverView {
 
         // Animate moving out to the left
         for ( index, charLayer ) in characterLayers.enumerated() {
-            let delay = Double(index) * 0.05 // Slight cascade exit
+            
             
             let moveOut = CASpringAnimation(keyPath: "position.x")
+            configSpringAnimation(layer: moveOut, index: index)
             moveOut.fromValue = centerX - (textWidth / 2) + charLayer.position.x - bounds.width
             moveOut.toValue = -(charLayer.position.x)
-            moveOut.damping = 1500
-            moveOut.stiffness = 100
-            moveOut.mass = 10
-            moveOut.initialVelocity = 0.5
-            moveOut.duration = moveOut.settlingDuration * 10
-            moveOut.beginTime = CACurrentMediaTime() + delay
-            moveOut.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            moveOut.fillMode = .forwards
             
             charLayer.add(moveOut, forKey: "moveOut")
             totalDuration += moveOut.settlingDuration
@@ -112,4 +96,17 @@ class SeveranceScreensaverView: ScreenSaverView {
             self.animateIn(textWidth: textWidth)
         }
     }
+    
+    func configSpringAnimation(layer: CASpringAnimation, index: Int) {
+        let delay = Double(index) * 0.2 // Stagger animation for each character
+        layer.damping = 1500
+        layer.stiffness = 100
+        layer.mass = 10
+        layer.initialVelocity = 0.5
+        layer.duration = layer.settlingDuration * 10 // Adjust this to change speed of animation
+        layer.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        layer.fillMode = .forwards
+        layer.beginTime = CACurrentMediaTime() + delay
+    }
+
 }
