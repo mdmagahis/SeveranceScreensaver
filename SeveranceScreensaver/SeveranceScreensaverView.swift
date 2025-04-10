@@ -27,10 +27,14 @@ class SeveranceScreensaverView: ScreenSaverView {
         self.layer?.backgroundColor = NSColor.black.cgColor
         
         let fontSize: CGFloat = bounds.height * 0.1
-        let fontSpec: NSFont = NSFont.systemFont(ofSize: fontSize, weight: .bold)
+        let defaultFontSpec: NSFont = NSFont.systemFont(ofSize: fontSize, weight: .bold)
+        let fontSpec = NSFont(name: "Michroma", size: fontSize)
+        let atributes: [NSAttributedString.Key: Any] = [.font: fontSpec ?? defaultFontSpec]
+
+        
         let startX = bounds.width
         let startY = bounds.midY - fontSize / 2
-        let textWidth: CGFloat = CGFloat( text.size(withAttributes: [.font: fontSpec]).width )
+        let textWidth: CGFloat = CGFloat( text.size(withAttributes: atributes).width )
 
         var charPosition = startX
         for (_, char) in text.enumerated() {
@@ -42,7 +46,7 @@ class SeveranceScreensaverView: ScreenSaverView {
             charLayer.alignmentMode = .center
             charLayer.contentsScale = NSScreen.main?.backingScaleFactor ?? 2.0
             
-            let charSpace: CGSize = String(char).size(withAttributes: [.font: fontSpec])
+            let charSpace: CGSize = String(char).size(withAttributes: atributes)
             print("char:", char, "| width:", charSpace.width, "| pos:", charPosition)
             let xPosition = charPosition
             charLayer.frame = CGRect(x: xPosition, y: startY, width: CGFloat(charSpace.width), height: CGFloat(charSpace.height))
@@ -56,7 +60,6 @@ class SeveranceScreensaverView: ScreenSaverView {
     }
 
     private func animateIn(textWidth: CGFloat) {
-
         let centerX = bounds.midX
         var totalDuration: CFTimeInterval = 0
 
@@ -75,6 +78,7 @@ class SeveranceScreensaverView: ScreenSaverView {
             self.animateExit(centerX: centerX, textWidth: textWidth)
         }
     }
+
     func animateExit(centerX: CGFloat, textWidth: CGFloat) {
         var totalDuration: CFTimeInterval = 0
 
@@ -92,7 +96,7 @@ class SeveranceScreensaverView: ScreenSaverView {
         }
         
         // Restart animation after exit
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration / 5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration / 7) {
             self.animateIn(textWidth: textWidth)
         }
     }
