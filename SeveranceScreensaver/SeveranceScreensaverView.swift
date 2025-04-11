@@ -11,6 +11,7 @@ import ScreenSaver
 class SeveranceScreensaverView: ScreenSaverView {
     var characterLayers: [CATextLayer] = []
     let text = "Hello Ms. Cobel"
+    let lumonWhite: NSColor = NSColor(red: 240, green: 246, blue: 247, alpha: 1.0)
 
     override init?(frame: NSRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
@@ -56,6 +57,10 @@ class SeveranceScreensaverView: ScreenSaverView {
             charLayer.foregroundColor = NSColor.white.cgColor
             charLayer.alignmentMode = .center
             charLayer.contentsScale = NSScreen.main?.backingScaleFactor ?? 2.0
+            charLayer.shadowColor = lumonWhite.cgColor
+            charLayer.shadowRadius = fontSize / 10
+            charLayer.shadowOpacity = 0.8
+            charLayer.shadowOffset = CGSize.zero
 
             let charSpace: CGSize = String(char).size(withAttributes: atributes)
             print("char:", char, "| width:", charSpace.width, "| pos:", charPosition)
