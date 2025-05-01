@@ -193,6 +193,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -247,6 +248,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -264,6 +266,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Lumon.SeveranceScreensaver;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
 				WRAPPER_EXTENSION = saver;
 			};
 			name = Debug;
@@ -282,6 +285,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Lumon.SeveranceScreensaver;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
 				WRAPPER_EXTENSION = saver;
 			};
 			name = Release;
